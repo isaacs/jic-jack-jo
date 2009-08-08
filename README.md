@@ -8,7 +8,7 @@ Mostly a learning exercise.
 
 Installation:
 
-1. [Install narwhal.][http://narwhaljs.org/quick-start.html]
+1. [Install narwhal.](http://narwhaljs.org/quick-start.html)
 2. `tusk install jic-jack-jo`
 3. `cd jic-jack-jo`
 4. `jackup`
