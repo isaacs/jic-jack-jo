@@ -3,5 +3,7 @@
 	"author": "Isaac Z. Schlueter",
 	"dependencies": ["jack"],
 	"contributors": [],
-	"js" : "lib"
+	"js" : "lib",
+	"description" : "Tic-tac-toe on Jack",
+	"keywords" : ["game", "jack", "example"]
 }
