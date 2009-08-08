@@ -1,0 +1,7 @@
+{
+	"name": "Jic Jack Jo",
+	"author": "Isaac Z. Schlueter",
+	"dependencies": ["jack"],
+	"contributors": [],
+	"js" : "lib"
+}
