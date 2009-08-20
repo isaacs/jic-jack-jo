@@ -58,7 +58,7 @@ A game in progress is expressed as an object with userids assigned to the x and 
 
 ## Requests
 
-For all GETs, client may pass an If-Unmodified-Since header, and the server may respond with a 304 if appropriate.  All cacheable server responses should contain a Last-Modified header to facilitate this.
+For all GETs, client may pass an If-Unmodified-Since header, and the server may respond with a `304 Not Modified` if appropriate.  All cacheable server responses should contain a Last-Modified header to facilitate this.
 
 Examples show request bodies in JSON, but query-string encoding is also acceptable.
 
@@ -75,13 +75,13 @@ If the HTTP-Accept header contains text/html, then pass the data through the tem
 
 User and password can go in the http auth headers, but they could also go in the request body as shown.
 
-If the login fails, the response is a 401 Unauthorized response, and it's up to the consumer to try again.  (In a browser, this triggers the request for username and password, and the request is resubmitted with the proper http auth headers.)
+If the login fails, the response is a `401 Unauthorized` response, and it's up to the consumer to try again.  (In a browser, this triggers the request for username and password, and the request is resubmitted with the proper http auth headers.)
 
 On a successful identify, return a Set-Cookie header with a session token.
 
 ### POST /identify/{path}
 
-Just like the regular /identify request, however the additional path information is used to redirect the user using a 302 Found if the login succeeds.
+Just like the regular /identify request, however the additional path information is used to redirect the user using a `302 Found` if the login succeeds.
 
 ### GET /games
 
@@ -91,7 +91,7 @@ return a list of available games, and who is playing in them.  Format is an arra
 
 return the game info object for just one game, specified by id, with the game state description.
 
-If the game is not visible, and has started, then return a 403 Forbidden.
+If the game is not visible, and has started, then return a `403 Forbidden`.
 
 If the HTTP-Accept includes "application/json+comet", and an If-Modified-Since, then keep the connection open as long as possible, until the game has a new change since that time.  At that point, return the new game state and close the connection immediately.
 
@@ -109,10 +109,10 @@ Invisible games can only be seen by players.
 
 Join the game.  Authentication required.  If authentication is not provided, then user is redirected to /identify/game/{id} to provide credentials.
 
-If the seat is taken, then return a 400 Bad Request, with the current game state as the request body, so that the client can try again.
+If the seat is taken, then return a `400 Bad Request`, with the current game state as the request body, so that the client can try again.
 
 ### POST /game/{id}/move
 
-If the user is not allowed to make the supplied move, then return a 403.
+If the user is not allowed to make the supplied move, then return a `403 Forbidden`.
 
 Otherwise, return an updated game state.
