@@ -1,6 +1,6 @@
 exports = {};
 
-exports.board = function() {
+exports.Board = function() {
 
     var active,
         events = {},
