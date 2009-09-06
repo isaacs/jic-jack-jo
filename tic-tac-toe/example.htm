@@ -136,19 +136,27 @@
 
   var showBoard = function(pieces) {
 
-    for (var x = 0; x < 3; x++) {
-      for (var y = 0; y < 3; y++) {
+    var msg, winner, x, y;
+
+    for (x = 0; x < 3; x++) {
+      for (y = 0; y < 3; y++) {
         $(els[x][y]).html(pieces[x][y]);
       }
     }
 
     if (!board.isActive()) {
 
-      if (board.getWinner() == you) {
-        message("Good job, you won! Click the board to reset.");
+      winner = board.getWinner();
+
+      if (winner === null) {
+        msg = "Tie game. Typical.";
+      } else if (winner == you) {
+        msg = "Good job, you won!";
       } else {
-        message("Way to lose, loser.");
+        msg = "Way to lose, loser.";
       }
+
+      message(msg + " Click the board to reset.");
 
     }
 

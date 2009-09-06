@@ -4,7 +4,7 @@ exports.Board = function() {
 
     var active,
         events = {},
-        history = [],
+        history,
         pieces,
         turn,
         winner;
@@ -12,12 +12,14 @@ exports.Board = function() {
     var init = function() {
 
         active = true;
+        history = [];
         pieces = [
             ['', '', ''],
             ['', '', ''],
             ['', '', '']
         ];
         turn = 'x';
+        winner = null;
 
         fire('init', pieces);
 
@@ -68,11 +70,13 @@ exports.Board = function() {
                 if (found) {
                     active = false;
                     winner = found;
-                    return true;
+                    return false;
                 };
             }
 
-            return false;
+            active = (history.length < 9);
+
+            return active;
 
         };
 
@@ -148,7 +152,7 @@ exports.Board = function() {
         next = check();
 
         fire('move', pieces);
-        if (!next) turnChange();
+        if (next) turnChange();
 
         return true;
 
