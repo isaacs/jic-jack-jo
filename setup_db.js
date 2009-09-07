@@ -4,26 +4,45 @@
 // http://localhost:5948/_utils
 
 var couch = require("./lib/couch").CouchDB("http://localhost:5984/jic-jack-jo"),
-    delres = couch.DELETE("_design/fooble"),
     result = couch.PUT("_design/jic-jack-jo", {
         language: "javascript",
         views : {
-            next_game_id : {
+            seats : {
                 map : function (doc) {
-                    emit( null, doc._id );
-                },
-                reduce : function (keys, vals) {
-                    var max = parseInt(vals.pop().replace(/^game-/, ''), 10) + 1;
-                    vals.forEach(function (each) {
-                        each = parseInt(each.replace(/^game-/, ''), 10);
-                        if (each >= max) max = each + 1;
-                    });
-                    return "game-"+max;
+                    // figure out if this game is full, or awaiting a seat
+                    if (doc.x === null || doc.o === null) {
+                        emit( null, ["open", doc._id, doc.o ? "x" : "o"] );
+                    } else {
+                        emit( null, ["full", doc._id] );
+                    }
                 }
             },
-            another_thing : {
+            open_seat : {
                 map : function (doc) {
-                    emit( null, doc );
+                    // figure out if this game is full, or awaiting a seat
+                    if (doc.x === null || doc.o === null) {
+                        emit( null, ["open", doc._id, doc.o ? "x" : "o"] );
+                    } else {
+                        emit( null, ["full", doc._id] );
+                    }
+                },
+                // games can be "new", "open", or "full"
+                reduce : function (keys, vals) {
+                    var res = vals.pop();
+                    var p = function (v) { return parseInt(v[1].replace(/^game-/, ''), 10) };
+                    vals.forEach(function (val) {
+                        if (
+                            res[0] === "full" &&
+                            (val[0] === "open" || p(val) > p(res))
+                        ) return res = val;
+                    });
+                    // now res is either "open" or the result with the guaranteed greatest ID
+                    // increment it if it's not the highest, so that 
+                    if (res[0] === "full") {
+                        res[1] = "game-"+(p(res) + 1);
+                        res[0] = "new";
+                    }
+                    return res;
                 }
             }
         }
@@ -51,7 +70,7 @@ for (
             		["o", "o", "x"],
             		["x", "o", "o"]
             	],
-            	winner : "x",
+            	win : "x",
             	history : [
             		{"x":[0,0]},
             		{"o":[1,0]},
@@ -63,7 +82,9 @@ for (
             		{"o":[2,1]},
             		{"x":[0,2]}
             	],
-            	turn : null
+            	turn : null,
+            	x : "test-user-x",
+            	o : "test-user-o"
             },
             {
                 state : [
@@ -71,7 +92,7 @@ for (
             		["o", "o", "x"],
             		["", "x", "o"]
             	],
-            	winner : null,
+            	win : null,
             	history : [
             		{"x":[0,0]},
             		{"o":[1,0]},
@@ -81,7 +102,9 @@ for (
             		{"o":[2,2]},
             		{"x":[0,1]},
             	],
-            	turn : "o"
+            	turn : "o",
+            	x : "test-user-x",
+            	o : "test-user-o"
             },
             {
                 state : [
@@ -89,14 +112,24 @@ for (
             		["o", "o", "x"],
             		["", "", ""]
             	],
-            	winner : null,
+            	win : null,
             	history : [
             		{"x":[0,0]},
             		{"o":[1,0]},
             		{"x":[1,2]},
             		{"o":[1,1]},
             	],
-            	turn : "x"
+            	turn : "x",
+            	x : "test-user-x",
+            	o : "test-user-o"
+            },
+            {
+                state : [['','',''],['','',''],['','','']],
+                win : null,
+                history : [],
+                turn : "x",
+                x : "test-user-x",
+                o : null
             }
         ].forEach(function (game, index) {
             couch.PUT("/game-"+index, game);
