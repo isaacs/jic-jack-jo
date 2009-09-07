@@ -1,55 +1,17 @@
 var Jack = require("jack"), map = {}, App, HashP = require("hashp").HashP;
 
-
-//*
-
-// map the urls to functions as specified
-// var map = {
-//     "/game" : function (env) {
-//         return [200, {"Content-type": "text/plain"}, ["would you like to play a game?"]];
-//     }
-// };
-
-map["/test"] = function (env) {
-    var req = new Jack.Request(env);
-    
-    var body = [
-        "<!DOCTYPE html><head><title>test</title></head>",
-        "<body>"
-    ];
-    
-    
-    body.push("<form action='' method=post><input name=foo value=bar type=submit></form>");
-    
-    body.push(req.POST("foo") || 'no foo!');
-    body.push("<br>");
-    
-    body.push(JSON.stringify(req.POST()) || "huh?");
-    
-    body.push("<br>gets: <br>")
-    body.push(JSON.stringify(req.GET()) || "huh?");
-    // body.push("<hr>");
-    // body.push(JSON.stringify(env["jack.request"]));
-    
-    
-    body.push("<pre>");
-    for (var i in env) {
-        body.push(i+":"+typeof(env[i])+" "+env[i]+"\n");
-    }
-    body.push("</pre>");
-    
-    
-    return new Jack.Response(200, {}, body).finish();
-
-};
+map["/test"] = require("./lib/test").app;
 
 // map the requests to handlers
 HashP.update(map, require("./lib/urlmap"));
 App = Jack.URLMap(map);
 
-// require identity
+// require the jjj.user cookie/env
 App = (function (app) {
     return function (env) {
+        // if already set, then just bypass this middleware.
+        if (env["jjj.user"]) return app(env);
+        
         var Request = Jack.Request;
         var cookie = new Jack.Request(env).cookies();
         if ("jjj.user" in cookie) {
@@ -82,9 +44,6 @@ App = Jack.Head(App);
 
 // support method swapping
 App = Jack.MethodOverride(App);
-
-
-//*/
 
 // attach the content-length header.
 App = Jack.ContentLength(App);
