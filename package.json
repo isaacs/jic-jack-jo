@@ -1,7 +1,6 @@
 {
 	"name": "jic-jack-jo",
 	"author": "Isaac Z. Schlueter",
-	"dependencies": ["jack"],
 	"contributors": [],
 	"js" : "lib",
 	"description" : "Tic-tac-toe on Jack",
