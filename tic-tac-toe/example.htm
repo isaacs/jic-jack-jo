@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+
+  td {
+    cursor: pointer;
+
+    font-family: arial, sans-serif;
+    font-size: 25px;
+    text-align: center;
+
+    width: 50px;
+    height: 50px;
+  }
+
+  </style>
+  <title>Jic Jack Jo Demo</title>
+</head>
+<body>
+
+<h1>Jic Jack Jo</h1>
+
+<p id="message"></p>
+
+<table border="1" id="board">
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js" type="text/javascript"></script>
+<script src="board.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+(function() {
+
+  var board = exports.Board(),
+    els = [],
+    you = 'x';
+
+  var init = function() {
+
+    setPieces();
+    board.on('init', showBoard);  
+    board.on('move', showBoard);  
+    board.on('turn', showTurn);  
+    newGame();
+
+    $('table tr td').click(click);
+
+  };
+
+  var click = function(e) {
+
+    var el = $(this).get(0),
+      move = {},
+      x = y = 0;
+
+    if (!board.isActive()) {
+      newGame();
+      return;
+    } else if (board.getTurn() != you) {
+      alert("Sorry, it's not your turn.");
+      return;
+    }
+
+    for (x = 0; x < 3; x++) {
+      for (y = 0; y < 3; y++) {
+        if (el == els[x][y]) move[you] = [x, y];
+      }
+    }
+
+    if (!board.move(move)) {
+      alert("Sorry, invalid move.");
+    }
+
+  };
+
+  var message = function(msg) {
+    $('#message').html(msg);
+  };
+
+  var newGame = function() {
+    board.init();
+    showTurn(board.getTurn());
+  };
+
+  var npcMove = function() {
+
+    setTimeout(function() {
+
+      var moves = board.getMoves();
+
+      board.move({
+        o : moves[rand(moves)]
+      });
+
+    }, rand(500, 1500));
+    
+  };
+
+  var rand = function(from, to) {
+
+    if (from.length === undefined) {
+      return (from + Math.floor((to - from + 1) * Math.random()));
+    } else {
+      return arguments.callee(0, (from.length - 1));
+    }
+
+  };
+
+  var setPieces = function() {
+
+    $('#board tr').each(function() {
+      els.push([]);
+      $(this).find('td').each(function() {
+        els[els.length - 1].push($(this).get(0));
+      });
+    });
+
+  };
+
+  var showBoard = function(pieces) {
+
+    var msg, winner, x, y;
+
+    for (x = 0; x < 3; x++) {
+      for (y = 0; y < 3; y++) {
+        $(els[x][y]).html(pieces[x][y]);
+      }
+    }
+
+    if (!board.isActive()) {
+
+      winner = board.getWinner();
+
+      if (winner === null) {
+        msg = "Tie game. Typical.";
+      } else if (winner == you) {
+        msg = "Good job, you won!";
+      } else {
+        msg = "Way to lose, loser.";
+      }
+
+      message(msg + " Click the board to reset.");
+
+    }
+
+  };
+
+  var showTurn = function(turn) {
+
+    if (turn == you) {
+      message("It's <em>your</em> turn.");
+    } else {
+      message("It's your opponent's turn.");
+      npcMove();
+    }
+
+  };
+
+  init();
+
+})();
+
+</script>
+
+</body>
+</html>
