@@ -1,4 +1,4 @@
-var Jack = require("jack"), map = {};
+var Jack = require("jack"), map = {}, App, HashP = require("hashp").HashP;
 
 
 //*
@@ -44,24 +44,50 @@ map["/test"] = function (env) {
 };
 
 // map the requests to handlers
-require("hashp").HashP.update(map, require("./lib/urlmap"));
-exports.app = Jack.URLMap(map);
+HashP.update(map, require("./lib/urlmap"));
+App = Jack.URLMap(map);
+
+// require identity
+App = (function (app) {
+    return function (env) {
+        var Request = Jack.Request;
+        var cookie = new Jack.Request(env).cookies();
+        if ("jjj.user" in cookie) {
+            env["jjj.user"] = cookie["jjj.user"];
+            return app(env);
+        }
+        // set the cookie.
+        env["jjj.user"] = require("sha256").hash(
+            require("os").command("echo $RANDOM")
+        ).toString(64);
+        result = app(env);
+        var resp = new Jack.Response(result.status, result.headers, result.body);
+        resp.setCookie("jjj.user", {
+            value : env["jjj.user"],
+            path : "/"
+        });
+        return resp.finish();
+    };
+})(App);
 
 // jsonp on anything!
-exports.app = Jack.JSONP(exports.app);
+App = Jack.JSONP(App);
 
 
 // serve static stuff from the /static folder.
-exports.app = Jack.Static(exports.app, { urls : ["/static", "/tic-tac-toe"] });
+App = Jack.Static(App, { urls : ["/static", "/tic-tac-toe"] });
 
 // support bodiless HEAD requests
-exports.app = Jack.Head(exports.app);
+App = Jack.Head(App);
 
 // support method swapping
-exports.app = Jack.MethodOverride(exports.app);
+App = Jack.MethodOverride(App);
 
 
 //*/
 
 // attach the content-length header.
-exports.app = Jack.ContentLength(exports.app);
+App = Jack.ContentLength(App);
+
+// return it;
+exports.app = App;
