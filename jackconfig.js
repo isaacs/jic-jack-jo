@@ -35,7 +35,6 @@ App = (function (app) {
 // jsonp on anything!
 App = Jack.JSONP(App);
 
-
 // serve static stuff from the /static folder.
 App = Jack.Static(App, { urls : ["/static", "/tic-tac-toe"] });
 
@@ -47,6 +46,20 @@ App = Jack.MethodOverride(App);
 
 // attach the content-length header.
 App = Jack.ContentLength(App);
+
+// append charset=UTF-8 to content-type header.
+App = (function (app) {
+    return function (env) {
+        var res = app(env),
+            ct = HashP.get(res.headers, "Content-Type");
+        if (!ct) return res;
+        var cs = /charset=([a-z0-9_-]+)/i.exec(ct);
+        if (!cs || !cs[1]) HashP.set(
+            res.headers, "Content-Type", ct + "; charset=UTF-8"
+        );
+        return res;
+    };
+})(App);
 
 // return it;
 exports.app = App;
