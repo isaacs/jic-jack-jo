@@ -1,6 +1,6 @@
 exports = {};
 
-exports.Board = function() {
+exports.Board = function (game) {
 
     var active,
         events = {},
@@ -8,12 +8,13 @@ exports.Board = function() {
         pieces,
         turn,
         winner;
-
-    var init = function() {
-
+    
+    if (game) init(game);
+    function init (game) {
+        game = game || {};
         active = true;
-        history = [];
-        pieces = [
+        history = game.history || [];
+        pieces = game.state || [
             ['', '', ''],
             ['', '', ''],
             ['', '', '']
@@ -42,7 +43,7 @@ exports.Board = function() {
             [[2, 0], [1, 1], [0, 2]]
         ];
 
-        var match = function(coords) {
+        function match (coords) {
 
             var i,
                 x = coords[0][0],
@@ -87,7 +88,7 @@ exports.Board = function() {
      * @param {String} e The name of the event to fire
      * @param {Object} args The arguments to pass in
      */
-    var fire = function(e, args) {
+    function fire (e, args) {
         if (events[e]) events[e](args);
     };
 
@@ -95,7 +96,7 @@ exports.Board = function() {
      * Get the valid moves available
      * @return {Array} An array of [x, y] coords
      */
-    var getMoves = function() {
+    function getMoves () {
 
         var moves = [],
             x, y;
@@ -113,21 +114,21 @@ exports.Board = function() {
     /**
      * @return {String} Whose turn it is ("x" or "o")
      */
-    var getTurn = function() {
+    function getTurn () {
         return turn;
     };
 
     /**
      * @return {String} The winner ("x" or "o")
      */
-    var getWinner = function() {
+    function getWinner () {
         return winner;
     };
 
     /**
      * @return {Boolean} True if the game is still active
      */
-    var isActive = function() {
+    function isActive () {
         return active;
     };
 
@@ -136,7 +137,7 @@ exports.Board = function() {
      * @param {Object} move The move to make, eg: {x : [1, 1]} for x in the middle
      * @return {Boolean} True on successful move, false if move is invalid
      */
-    var move = function(move) {
+    function move (move) {
 
         var x = move[turn][0],
             y = move[turn][1],
@@ -163,18 +164,18 @@ exports.Board = function() {
      * @param {String} e The name of the event
      * @param {Function} fn The function to call when the event is fired
      */
-    var on = function(e, fn) {
+    function on (e, fn) {
         events[e] = fn;
     };
 
     /**
      * Toggle the turn between "x" and "o"
      */
-    var turnChange = function() {
+    function turnChange () {
         turn = ((turn == 'x') ? 'o' : 'x');
         fire('turn', turn);
     };
-
+    
     return {
         getMoves : getMoves,
         getTurn : getTurn,
