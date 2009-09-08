@@ -66,20 +66,18 @@ exports.Board = function (game) {
         return function() {
 
             var found, i;
+            
+            if (history.length >= 9) return active = false;
 
             for (i = 0; i < coords.length; i++) {
                 found = match(coords[i]);
                 if (found) {
-                    active = false;
                     winner = found;
-                    return false;
+                    return active = false;
                 };
             }
-
-            active = (history.length < 9);
-
+            
             return active;
-
         };
 
     })();
@@ -153,7 +151,6 @@ exports.Board = function (game) {
      * @return {Boolean} True on successful move, false if move is invalid
      */
     function move (move) {
-        
         // trying to move out of turn.
         if (!(turn in move)) return false;
         
@@ -169,7 +166,7 @@ exports.Board = function (game) {
 
         state[x][y] = turn;
         next = check();
-
+        
         fire('move', state);
         if (next) turnChange();
 
@@ -213,7 +210,8 @@ exports.Board = function (game) {
         init : init,
         isActive : isActive,
         move : move,
-        on : on
+        on : on,
+        fire : fire
     };
 
 };

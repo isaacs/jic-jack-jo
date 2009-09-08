@@ -113,7 +113,7 @@
                 game = data;
                 busy = false;
 
-                showBoard(game.state);
+                showBoard(game);
 
             },
             error : function() {
@@ -163,7 +163,7 @@
 
                     busy = false;
 
-                    showBoard(game.state);
+                    showBoard(game);
 
                 },
                 error : error
@@ -206,9 +206,9 @@
 
     };
 
-    var showBoard = function(pieces) {
+    var showBoard = function (game) {
 
-        var msg, x, y;
+        var msg, x, y, pieces = game.state;
 
         for (x = 0; x < 3; x++) {
             for (y = 0; y < 3; y++) {
@@ -216,7 +216,7 @@
             }
         }
 
-        board.setState(pieces);
+        board.init(game);
         if (board.check()) {
             showTurn();
         } else {
@@ -262,7 +262,7 @@
 
                         busy = false;
                         game = data;
-                        showBoard(game.state);
+                        showBoard(game);
 
                     },
                     error : error
@@ -275,7 +275,6 @@
         }
 
     };
-
     init();
 
 })();
