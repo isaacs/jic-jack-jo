@@ -12,7 +12,7 @@ echo "--"
 echo "-- attempting to join/create a game for player $p"
 echo "--"
 gameurl=$(
-	curl -i -c "$cookiejar" -b "$cookiejar" http://localhost:8080/game/new\
+	curl -i -c "$cookiejar" -b "$cookiejar" http://localhost:8080/game/join \
 		| tee /dev/stderr \
 		| egrep -i '^Location: ' \
 		| egrep -o 'http://.*$'
