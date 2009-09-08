@@ -28,15 +28,7 @@
 <body>
 
 <h1>Jic Jack Jo</h1>
-
 <p id="message"></p>
-
-<ol>
-<li>If the seats are full, then start playing.  Otherwise, start polling every 10 seconds or so.
-<li>When it's your turn, POST the move to /game/{game-id}/move.  (The gameid is game._id)
-<li>That'll return either an error or a new updated game state.  Make sure it matches what you get on the client side.  (Should, it's the same frakkin code, after all.)
-<li>You can always hit /game/join to join/create a new game.  Maybe there should be a link or something?
-</ol>
 
 <table id="board">
   <tr>
@@ -60,39 +52,39 @@
 
 (function() {
 
+  var XHR_DELAY = 3000;
+
   var board = exports.Board(),
     busy,
     els = [],
     game,
-    you = 'x';
+    you;
 
   var init = function() {
 
     setPieces();
-    board.on('init', showBoard);  
-    board.on('move', showBoard);  
-    board.on('turn', showTurn);  
     newGame();
 
-    $('table tr td').click(click);
+    $('td').click(click);
 
   };
 
   var click = function(e) {
+
+    var el = $(this).get(0),
+      move = {},
+      x = y = 0;
 
     if (busy) {
       alert("Sorry, not ready for clicks yet!");
       return;
     }
 
-    var el = $(this).get(0),
-      move = {},
-      x = y = 0;
-
-    if (!board.isActive()) {
+    board.setState(game.state);
+    if (!board.check()) {
       newGame();
       return;
-    } else if (board.getTurn() != you) {
+    } else if (game.turn != you) {
       alert("Sorry, it's not your turn.");
       return;
     }
@@ -103,10 +95,38 @@
       }
     }
 
-    if (!board.move(move)) {
-      alert("Sorry, invalid move.");
-    }
+    // So, actually right here could call board.move(move) to see if the move is valid
+    busy = true;
 
+    $.ajax({
+      type : 'POST',
+      url : printf('/game/move/%s', game._id),
+      dataType : 'json',
+      // This just feels wrong, either I can't think or I should be sending keys
+      //data : move,
+      data : printf('{"%s":[%s,%s]}', you, move[you][0], move[you][1]),
+      success : function(data) {
+
+        busy = false;
+
+        // Ugh, WTF jQuery is supposed to do this for me !@#$%^&*
+        game = data;
+        busy = false;
+
+        showBoard(game.state);
+
+      },
+      error : function() {
+        busy = false;
+        alert("Invalid move, try again!");
+      }
+    });
+
+  };
+
+  var error = function(e) {
+    alert("Crap, sorry, couldn't get the Internets. Refresh?");
+    console.log(e);
   };
 
   var message = function(msg) {
@@ -115,38 +135,38 @@
 
   var newGame = function() {
 
-    board.init();
-    showTurn(board.getTurn());
+    var fetch;
 
-    busy = true;
+    board.init();
     message("Fetching a game for you …");
 
-    var fetch = function() {
+    busy = true;
+    fetch = function() {
 
-      url = game ? ('/game/' + game.id) : '/game/join';
+      url = game ? printf('/game/%s', game._id) : '/game/join';
 
       $.ajax({
-        type : 'POST',
+        type : 'GET',
         url : url,
         dataType : 'json',
         success : function(data) {
 
-          if ((data.x === null) || (data.o === null)) {
+          game = data;
+          you = game.user.seat;
+          $('h1').attr('title', 'game._id = ' + game._id);
+
+          if ((game.x === null) || (game.o === null)) {
             message("Got a game setup for you, waiting on another player to join …");
-            setTimeout(fetch, 3000);
+            setTimeout(fetch, XHR_DELAY);
             return;
           }
 
           busy = false;
-          game = data;
-          you = game.user.seat;
 
-          showTurn();
+          showBoard(game.state);
 
         },
-        error : function() {
-          alert("Crap, sorry, couldn't get the Internets. Refresh?");
-        }
+        error : error
       });
 
     };
@@ -155,22 +175,14 @@
 
   };
 
-  var npcMove = function() {
+  var printf = function(str) {
 
-    console.log('and here we send a randomly generated move to the API');
+    for (var i = 1; i < arguments.length; i++) {
+      str = str.replace(/%s/, arguments[i]);
+    }
 
-/*
-    setTimeout(function() {
+    return str;
 
-      var moves = board.getMoves();
-
-      board.move({
-        o : moves[rand(moves)]
-      });
-
-    }, rand(500, 1500));
-*/
-    
   };
 
   var rand = function(from, to) {
@@ -196,7 +208,7 @@
 
   var showBoard = function(pieces) {
 
-    var msg, winner, x, y;
+    var msg, x, y;
 
     for (x = 0; x < 3; x++) {
       for (y = 0; y < 3; y++) {
@@ -204,34 +216,62 @@
       }
     }
 
-    if (!board.isActive()) {
+    board.setState(pieces);
+    if (board.check()) {
+      showTurn();
+    } else {
 
-      winner = board.getWinner();
-
-      if (winner === null) {
+      if (game.win === null) {
         msg = "Tie game. Typical.";
-      } else if (winner == you) {
+      } else if (game.win == you) {
         msg = "Good job, you won!";
       } else {
         msg = "Way to lose, loser.";
       }
 
-      message(msg + " Click the board to reset.");
+      busy = true;
+      message(msg + " Play again? Refresh the page. I'm not gonna hold your damn hand.");
 
     }
 
   };
 
-  var showTurn = function(turn) {
+  var showTurn = function() {
 
-    if (turn === undefined) turn = game.turn;
+    var fetch;
 
-    if (turn == you) {
-      message("It's <em>your</em> turn.");
+    if (game.turn == you) {
+      message(printf("It's <em>your</em> turn (<strong>%s</strong>).", game.turn.toUpperCase()));
     } else {
-      busy = true;
+
       message("Fetching your opponent's turn …");
-      npcMove();
+
+      busy = true;
+      fetch = function() {
+
+        $.ajax({
+          type : 'GET',
+          url : printf('/game/%s', game._id),
+          dataType : 'json',
+          success : function(data) {
+
+            if (data._rev == game._rev) {
+              setTimeout(fetch, XHR_DELAY);
+              return;
+            }
+
+            busy = false;
+            game = data;
+            showBoard(game.state);
+
+          },
+          error : error
+        });
+
+      };
+
+      fetch();
+
     }
 
   };

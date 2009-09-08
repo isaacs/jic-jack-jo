@@ -187,6 +187,14 @@ exports.Board = function (game) {
     };
 
     /**
+     * Sets the game's state
+     * @param {Array} s The game state (an array of arrays of positions)
+     */
+    function setState (s) {
+        state = s;
+    };
+
+    /**
      * Toggle the turn between "x" and "o"
      */
     function turnChange () {
@@ -195,10 +203,12 @@ exports.Board = function (game) {
     };
     
     return {
+        check : check,
         getMoves : getMoves,
         getTurn : getTurn,
         getWinner : getWinner,
         getState : getState,
+        setState : setState,
         getHistory : getHistory,
         init : init,
         isActive : isActive,
