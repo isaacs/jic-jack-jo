@@ -10,6 +10,7 @@ exports.Board = function (game) {
         winner;
     
     if (game) init(game);
+
     function init (game) {
         game = game || {};
         active = game.win ? false : true;
