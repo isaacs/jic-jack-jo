@@ -1,3 +1,4 @@
 *.swp
 couchdb.*
 test/*.cookies.txt
+.DS_Store
