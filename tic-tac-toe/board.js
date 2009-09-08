@@ -1,28 +1,28 @@
-exports = {};
+if (typeof(exports) === "undefined") exports = {};
 
 exports.Board = function (game) {
 
     var active,
         events = {},
         history,
-        pieces,
+        state,
         turn,
         winner;
     
     if (game) init(game);
     function init (game) {
         game = game || {};
-        active = true;
+        active = game.win ? false : true;
         history = game.history || [];
-        pieces = game.state || [
+        state = game.state || [
             ['', '', ''],
             ['', '', ''],
             ['', '', '']
         ];
-        turn = 'x';
-        winner = null;
+        turn = game.turn || 'x';
+        winner = game.win || null;
 
-        fire('init', pieces);
+        fire('init', state);
 
     };
 
@@ -48,14 +48,14 @@ exports.Board = function (game) {
             var i,
                 x = coords[0][0],
                 y = coords[0][1],
-                piece = pieces[x][y];
+                piece = state[x][y];
 
             if (!piece) return;
 
             for (i = 1; i < coords.length; i++) {
                 x = coords[i][0];
                 y = coords[i][1];
-                if (pieces[x][y] != piece) return false;
+                if (state[x][y] != piece) return false;
             }
 
             return piece;
@@ -101,9 +101,9 @@ exports.Board = function (game) {
         var moves = [],
             x, y;
 
-        for (x = 0; x < pieces.length; x++) {
-            for (y = 0; y < pieces[x].length; y++) {
-                if (!pieces[x][y]) moves.push([x, y]);
+        for (x = 0; x < state.length; x++) {
+            for (y = 0; y < state[x].length; y++) {
+                if (!state[x][y]) moves.push([x, y]);
             }
         }
 
@@ -124,7 +124,21 @@ exports.Board = function (game) {
     function getWinner () {
         return winner;
     };
-
+    
+    /**
+     * @return {Array<Array<String>>} The game state array
+     **/
+    function getState () {
+        return state;
+    };
+    
+    /**
+     * @return {Array<Move>} The array of past moves.
+     **/
+    function getHistory () {
+        return history;
+    };
+    
     /**
      * @return {Boolean} True if the game is still active
      */
@@ -138,21 +152,24 @@ exports.Board = function (game) {
      * @return {Boolean} True on successful move, false if move is invalid
      */
     function move (move) {
-
+        
+        // trying to move out of turn.
+        if (!(turn in move)) return false;
+        
         var x = move[turn][0],
             y = move[turn][1],
             next,
             push = {};
 
-        if (pieces[x][y] !== '') return false;
+        if (state[x][y] !== '') return false;
 
         push[turn] = [x, y];
         history.push(push);
 
-        pieces[x][y] = turn;
+        state[x][y] = turn;
         next = check();
 
-        fire('move', pieces);
+        fire('move', state);
         if (next) turnChange();
 
         return true;
@@ -180,6 +197,8 @@ exports.Board = function (game) {
         getMoves : getMoves,
         getTurn : getTurn,
         getWinner : getWinner,
+        getState : getState,
+        getHistory : getHistory,
         init : init,
         isActive : isActive,
         move : move,
