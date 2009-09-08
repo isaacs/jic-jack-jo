@@ -10,37 +10,35 @@ var couch = require("./lib/couch").CouchDB("http://localhost:5984/jic-jack-jo"),
             seats : {
                 map : function (doc) {
                     // figure out if this game is full, or awaiting a seat
-                    if (doc.x === null || doc.o === null) {
-                        emit( null, ["open", doc._id, doc.o ? "x" : "o"] );
-                    } else {
-                        emit( null, ["full", doc._id] );
-                    }
+                    emit(null, !(doc.x  && doc.o)
+                        ? {state:"open", id:doc._id, seat:(doc.o ? "x" : "o")}
+                        : {state:"full", id:doc._id}
+                    );
                 }
             },
             open_seat : {
                 map : function (doc) {
                     // figure out if this game is full, or awaiting a seat
-                    if (doc.x === null || doc.o === null) {
-                        emit( null, ["open", doc._id, doc.o ? "x" : "o"] );
-                    } else {
-                        emit( null, ["full", doc._id] );
-                    }
+                    emit(null, !(doc.x  && doc.o)
+                        ? {state:"open", id:doc._id, seat:(doc.o ? "x" : "o")}
+                        : {state:"full", id:doc._id}
+                    );
                 },
                 // games can be "new", "open", or "full"
                 reduce : function (keys, vals) {
-                    var res = vals.pop();
-                    var p = function (v) { return parseInt(v[1].replace(/^game-/, ''), 10) };
+                    var res = vals.pop() || {id:"game-0", state:"new"};
+                    var p = function (v) { return parseInt(v.id.replace(/^game-/, ''), 10) };
                     vals.forEach(function (val) {
                         if (
-                            res[0] === "full" &&
-                            (val[0] === "open" || p(val) > p(res))
+                            res.state === "full" &&
+                            (val.state === "open" || p(val) > p(res))
                         ) return res = val;
                     });
                     // now res is either "open" or the result with the guaranteed greatest ID
                     // increment it if it's not the highest, so that 
-                    if (res[0] === "full") {
-                        res[1] = "game-"+(p(res) + 1);
-                        res[0] = "new";
+                    if (res.state === "full") {
+                        res.id = "game-"+(p(res) + 1);
+                        res.state = "new";
                     }
                     return res;
                 }
