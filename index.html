@@ -1,14 +1,246 @@
 <!doctype html>
+<html lang="en">
+<head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js"></script>
+  <script src="/tic-tac-toe/board.js"></script>
+  <style>
 
-<html lang="en" style="font-size:200%;width:800px;">
-<title>Jic Jack Jo</title>
+  table, td {
+    border: 1px solid #666;
+  }
 
-<h1 style="color:red">richtaur: Put shit here, plzkthx.</h1>
+  td {
+    background: #eeeeff;
+    cursor: pointer;
 
-<p>to join the game, hit /game/join.  That'll redirect and give you a game state object.
-<p>If the seats are full, then start playing.  Otherwise, start polling every 10 seconds or so.
-<p>When it's your turn, POST the move to /game/{game-id}/move.  (The gameid is game._id)
-<p>That'll return either an error or a new updated game state.  Make sure it matches what you get on the client side.  (Should, it's the same frakkin code, after all.)
-<p>You can always hit /game/join to join/create a new game.  Maybe there should be a link or something?
+    font-family: arial, sans-serif;
+    font-size: 25px;
+    text-align: center;
 
-<h2>Have fun barfing on this markup and terrible copy. It's intentionally bad so that you'll have fun deleting it!  Like this super long H2 that's multiple sentences long.  Heading tags are good for SEO right!? omglulz!!</h2>
+    width: 50px;
+    height: 50px;
+  }
+
+  </style>
+
+  <title>Jic Jack Jo</title>
+</head>
+<body>
+
+<h1>Jic Jack Jo</h1>
+
+<p id="message"></p>
+
+<ol>
+<li>If the seats are full, then start playing.  Otherwise, start polling every 10 seconds or so.
+<li>When it's your turn, POST the move to /game/{game-id}/move.  (The gameid is game._id)
+<li>That'll return either an error or a new updated game state.  Make sure it matches what you get on the client side.  (Should, it's the same frakkin code, after all.)
+<li>You can always hit /game/join to join/create a new game.  Maybe there should be a link or something?
+</ol>
+
+<table id="board">
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+<script>
+
+(function() {
+
+  var board = exports.Board(),
+    busy,
+    els = [],
+    game,
+    you = 'x';
+
+  var init = function() {
+
+    setPieces();
+    board.on('init', showBoard);  
+    board.on('move', showBoard);  
+    board.on('turn', showTurn);  
+    newGame();
+
+    $('table tr td').click(click);
+
+  };
+
+  var click = function(e) {
+
+    if (busy) {
+      alert("Sorry, not ready for clicks yet!");
+      return;
+    }
+
+    var el = $(this).get(0),
+      move = {},
+      x = y = 0;
+
+    if (!board.isActive()) {
+      newGame();
+      return;
+    } else if (board.getTurn() != you) {
+      alert("Sorry, it's not your turn.");
+      return;
+    }
+
+    for (x = 0; x < 3; x++) {
+      for (y = 0; y < 3; y++) {
+        if (el == els[x][y]) move[you] = [x, y];
+      }
+    }
+
+    if (!board.move(move)) {
+      alert("Sorry, invalid move.");
+    }
+
+  };
+
+  var message = function(msg) {
+    $('#message').html(msg);
+  };
+
+  var newGame = function() {
+
+    board.init();
+    showTurn(board.getTurn());
+
+    busy = true;
+    message("Fetching a game for you …");
+
+    var fetch = function() {
+
+      url = game ? ('/game/' + game.id) : '/game/join';
+
+      $.ajax({
+        type : 'POST',
+        url : url,
+        dataType : 'json',
+        success : function(data) {
+
+          if ((data.x === null) || (data.o === null)) {
+            message("Got a game setup for you, waiting on another player to join …");
+            setTimeout(fetch, 3000);
+            return;
+          }
+
+          busy = false;
+          game = data;
+          you = game.user.seat;
+
+          showTurn();
+
+        },
+        error : function() {
+          alert("Crap, sorry, couldn't get the Internets. Refresh?");
+        }
+      });
+
+    };
+
+    fetch();
+
+  };
+
+  var npcMove = function() {
+
+    console.log('and here we send a randomly generated move to the API');
+
+/*
+    setTimeout(function() {
+
+      var moves = board.getMoves();
+
+      board.move({
+        o : moves[rand(moves)]
+      });
+
+    }, rand(500, 1500));
+*/
+    
+  };
+
+  var rand = function(from, to) {
+
+    if (from.length === undefined) {
+      return (from + Math.floor((to - from + 1) * Math.random()));
+    } else {
+      return arguments.callee(0, (from.length - 1));
+    }
+
+  };
+
+  var setPieces = function() {
+
+    $('#board tr').each(function() {
+      els.push([]);
+      $(this).find('td').each(function() {
+        els[els.length - 1].push($(this).get(0));
+      });
+    });
+
+  };
+
+  var showBoard = function(pieces) {
+
+    var msg, winner, x, y;
+
+    for (x = 0; x < 3; x++) {
+      for (y = 0; y < 3; y++) {
+        $(els[x][y]).html(pieces[x][y]);
+      }
+    }
+
+    if (!board.isActive()) {
+
+      winner = board.getWinner();
+
+      if (winner === null) {
+        msg = "Tie game. Typical.";
+      } else if (winner == you) {
+        msg = "Good job, you won!";
+      } else {
+        msg = "Way to lose, loser.";
+      }
+
+      message(msg + " Click the board to reset.");
+
+    }
+
+  };
+
+  var showTurn = function(turn) {
+
+    if (turn === undefined) turn = game.turn;
+
+    if (turn == you) {
+      message("It's <em>your</em> turn.");
+    } else {
+      busy = true;
+      message("Fetching your opponent's turn …");
+      npcMove();
+    }
+
+  };
+
+  init();
+
+})();
+
+</script>
+
+</body>
+</html>
