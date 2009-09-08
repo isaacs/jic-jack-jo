@@ -26,7 +26,7 @@ var couch = require("./lib/couch").CouchDB("http://localhost:5984/jic-jack-jo"),
                 },
                 // games can be "new", "open", or "full"
                 reduce : function (keys, vals) {
-                    var res = vals.pop() || {id:"game-0", state:"new"};
+                    var res = vals.pop();
                     var p = function (v) { return parseInt(v.id.replace(/^game-/, ''), 10) };
                     vals.forEach(function (val) {
                         if (
