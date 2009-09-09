@@ -36,7 +36,7 @@ App = (function (app) {
 App = Jack.JSONP(App);
 
 // serve static stuff from the /static folder.
-App = Jack.Static(App, { urls : ["/static", "/tic-tac-toe", "/index.html", "/favicon.ico"] });
+App = Jack.Static(App, { urls : ["/static", "/tic-tac-toe", "/index.html", "/favicon.ico", "/BayJax"] });
 
 // support bodiless HEAD requests
 App = Jack.Head(App);
