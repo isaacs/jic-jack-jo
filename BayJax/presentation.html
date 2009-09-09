@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta name="description" content="ContextSwitchingSucks LAMP Javascript for the client PHP for the server Apache insanity for URI routing MySQL for data FOUR LANGUAGES!! (or more) ditch the file server,use an app server! Rack on Ruby WSGI on Python Plack (proposed) in Perl WSAPI in lua [your favorite language] coming soon! but... Web browsers don’t run Ruby, Python, Perl, or [your favorite language], which means you have to either use Javascript anyway, or add a compilation step, which also sucks. ORMs can be nightmarish, and most apps don’t actually need RDBMS anyhow. unless... Unless Javascript is [your favorite language]! Even Better! Javascript for the client Javascript for the server Javascript for URI routing Javascript for data ONE LANGUAGE!! (omgwin) CommonJS A bunch of folks trying to turn Javascript into a consistent, somewhat standardized platform, akin to Ruby, Python, etc. http://groups.google.com/group/commonjs https://wiki.mozilla.org/ServerJS #commonjs on irc.freenode.net Narwhal a general purpose javascript platform An implementation of CommonJS http://narwhaljs.org http://groups.google.com/group/narwhaljs #narwhal on irc.freenode.net JSGI A spec for CommonJS implementations to support building web apps. exports.app=function(env){return{status:200, headers:{...}, body:[...]}} http://jackjs.org/jsgi-spec.html Jack An implementation of JSGI on Narwhal, and a bunch of helpful stuff to build JSGI apps. Like Rack, but Javascript, so s/^R/^J/ http://jackjs.org Jic-Jack-Jo A very quickly whipped-up multiplayer game that runs on Jack. We did this in a weekend.  And it’s not just that we’re awesome – also, it’s pretty easy. Bonus: Javascript for data, too, because it’s using CouchDB to store everything. http://github.com/isaacs/jic-jack-jo (+slides) (demo) Bottom Line If you need a professional-level app up and running yesterday, server-side Javascript is not quite there yet.  Still very young. If you are going to take a while to build something anyway, and you want it to be fun, and you want to be at the cutting edge of the “next ruby,” then you should definitely get involved with CommonJS. Thanks! Isaac Z. Schlueter is isaacs Matt Hackett is richtaur We’re on github, and everywhere else. Find us. "/>
+    <title></title>
+    <script type="text/javascript" language="javascript">
+//      <![CDATA[
+            var images = new Array (14);
+            images[0] = "presentation_files/presentation.001.png";
+            images[1] = "presentation_files/presentation.002.png";
+            images[2] = "presentation_files/presentation.003.png";
+            images[3] = "presentation_files/presentation.004.png";
+            images[4] = "presentation_files/presentation.005.png";
+            images[5] = "presentation_files/presentation.006.png";
+            images[6] = "presentation_files/presentation.007.png";
+            images[7] = "presentation_files/presentation.008.png";
+            images[8] = "presentation_files/presentation.009.png";
+            images[9] = "presentation_files/presentation.010.png";
+            images[10] = "presentation_files/presentation.011.png";
+            images[11] = "presentation_files/presentation.012.png";
+            images[12] = "presentation_files/presentation.013.png";
+            images[13] = "presentation_files/presentation.014.png";
+            var index = 0;
+            function WindowLoaded(evt)
+            {
+                document.body.onselectstart = function () { return false; };
+            }
+            function Step(i)
+            {
+                GoTo(index + i)
+            }
+            function GoTo(newIndex)
+            {
+                if(newIndex >= 0 && newIndex < images.length)
+                {
+                    index = newIndex;
+                    document.Slideshow.src = images[index];
+                }
+            }
+//      ]]>
+    </script>
+</head>
+<body bgcolor="black" onload='WindowLoaded(event);'>
+    <p align="center">
+        <br/>
+        <br/>
+        <img name="Slideshow" alt="" src="presentation_files/presentation.001.png" onclick="Step(1)"/>
+        <br/>
+        <br/>
+        <input type="image" src="presentation_files/home.png" onclick="GoTo(0)"/>
+        &nbsp;&nbsp;&nbsp;
+        <input type="image" src="presentation_files/prev.png" onclick="Step(-1)"/>
+        <input type="image" src="presentation_files/next.png" onclick="Step(1)"/>
+    </p>
+</body>
+</html>
